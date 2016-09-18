@@ -1,0 +1,9 @@
+# Platform-specific dotfiles.
+.DS_Store
+*.swp
+*.vim
+*.pycache
+
+# Project-related files.
+data
+output
