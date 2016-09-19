@@ -58,7 +58,7 @@ def _make_rabiner_band_pass_filter(bin_freqs, sample_freq, sample_count, beta=4.
 	base_start = base_center - filter_width / 2
 	base_stop = base_center + filter_width / 2
 
-	t = _generate_sample_times(sample_count, sample_freq)
+	t = _generate_sample_times(sample_count, sample_freq / 2)
 	f_1, f_2 = (f / math.pi * np.sinc(f * t) for f in [base_start, base_stop])
 
 	w = np.kaiser(sample_count, beta)
@@ -241,6 +241,23 @@ API functions.
 def make_filter_bank(filter_seq, filter_type):
 	return [filter_type(f_start, f_center, f_stop) for (f_start, f_center, f_stop) in filter_seq]
 
+"""
+Note: due to the unpredictable response decay of filters created using the window design method, the
+resulting filter bank will typically have the following problems:
+
+  1. There will typically be gaps between the left and right edges of the overall frequency response
+     and ``f_start`` and ``f_stop``, respectively. That is, the filter bank will not span the
+     entirety of the requested frequency range.
+  2. There will typically be gaps between the edges of adjacent filters in the filter bank.
+
+I have found that the following procedure works well to address these problems:
+
+  - Create two plots: one with the responses of the individual filters superimposed, and another
+    with the overall frequency response.
+  - Increase ``beta`` until there is no gap between the edges of adjacent filters.
+  - Increase ``delta_l`` and ``delta_r`` until there are no gaps between the edges overall frequency
+    response and ``f_start`` and ``f_stop``.
+"""
 def make_uniform_rabiner_filter_bank(f_start, f_stop, sample_freq, filter_count, window_length,
 	beta=4.864, delta_l=0, delta_r=0):
 	
@@ -270,6 +287,10 @@ def make_mel_triangular_filter_bank(f_start, f_stop, sample_freq, filter_count, 
 		TriangularBandPass(window_length, sample_freq)
 	)
 
+"""
+See the notes for ``make_uniform_rabiner_filter_bank`` for information on how to adjust the
+parameters.
+"""
 def make_mel_rabiner_filter_bank(f_start, f_stop, sample_freq, filter_count, window_length,
 	beta=4.864, delta_l=0, delta_r=0):
 	
@@ -301,7 +322,7 @@ Computes the cepstral coefficients from the given signal by using the following 
   - For each chunk, compute the DCT-II of the coefficients obtained from the previous step. This
     gives us the cepstral coefficients.
 """
-def apply_filter_bank(filters_resps, signal, stride, window_type=WindowType.rectangular):
+def apply_filter_bank(filter_resps, signal, stride, window_type=WindowType.rectangular):
 	channels = len(filter_resps)
 	assert channels > 0
 	assert stride > 0
@@ -314,7 +335,7 @@ def apply_filter_bank(filters_resps, signal, stride, window_type=WindowType.rect
 	
 	magnitudes   = [np.abs(resp) for resp in filter_resps]
 	chunk_buffer = np.empty((chunk_size))
-	chunk_count  = math.ceil(len(x) / stride)
+	chunk_count  = math.ceil(len(signal) / stride)
 	features     = np.empty((chunk_count, channels))
 	
 	window = None
@@ -322,17 +343,17 @@ def apply_filter_bank(filters_resps, signal, stride, window_type=WindowType.rect
 	if window_type == WindowType.hamming:
 		window = np.hamming(chunk_size)
 	
-	for i, a in enumerate(range(0, len(x), stride)):
-		b = min(a + chunk_size, len(x))
+	for i, a in enumerate(range(0, len(signal), stride)):
+		b = min(a + chunk_size, len(signal))
 		np.copyto(dst=chunk_buffer[:b - a], src=signal[a:b])
-	
+
 		# We choose to zero-pad the last window if necessary, rather than discard it.
 		chunk_buffer[b:] = 0
 
 		if window is not None:
 			chunk_buffer = chunk_buffer * window
-		
-		S = np.fft.fft(chunk_buffer) ** 2
+
+		S = np.abs(np.fft.fft(chunk_buffer)) ** 2
 
 		for j, resp in enumerate(filter_resps):
 			features[i][j] = np.log(np.sum((S * resp)))
