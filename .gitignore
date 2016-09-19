@@ -1,8 +1,11 @@
 # Platform-specific dotfiles.
 .DS_Store
+
 *.swp
 *.vim
+
 __pycache__
+.ipynb_checkpoints
 
 # Project-related files.
 data
