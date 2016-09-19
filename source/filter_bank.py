@@ -353,6 +353,7 @@ def apply_filter_bank(filter_resps, signal, stride, window_type=WindowType.recta
 		if window is not None:
 			chunk_buffer = chunk_buffer * window
 
+		# TODO: we could optimize this by using ``rfft`` and expanding the result.
 		S = np.abs(np.fft.fft(chunk_buffer)) ** 2
 
 		for j, resp in enumerate(filter_resps):
