@@ -10,3 +10,4 @@ __pycache__
 # Project-related files.
 data
 output
+utilities/sph2pipe_v2.5

@@ -10,17 +10,29 @@ TIDIGITS data set.
 
 # Agenda
 
+- Write a visualization module, and switch to a continuous color scheme for the spectogram. Use a
+  red-based color scheme. The legend should have a color bar with labeled ticks.
+- Write a function to create a plot to visualize the Mel spectogram. Transition from blue (for
+  negative values) to red (for positive values). The legend should have a color bar with labeled
+  ticks.
+
 - Implement and test DTW
   - [x] Implement DTW.
-  - [x] Test on toy grid example (make a separate notebook called `warp.py`).
-  - [ ] Test with MFCC, using both two-norm and infinity-norm.
-  - [ ] Function to actually warp one utterance to another given the output of DTW.
+  - [x] Test on toy example (make a separate notebook called `warp.py`).
+  - [ ] Test with MFCC on TI46, using both two-norm and infinity-norm. Compare performance to that
+	of librosa's MFCC implementation. **Ensure that we divide the distance by the length of the
+        pattern that we are attempting to recognize.**
 
 - Find best filter bank for cepstral coefficient representation
-  - [ ] Find best number of filters to use.
-  - [ ] Which is the best norm to use?
+  - [ ] What is the best number of filters to use? Is it better to keep or discard the first DCT-II
+        coefficient? What is the best number of coefficients to keep?
+  - [ ] Does using rectangular vs Hamming window when computing the STFT matter?
+  - [ ] Which norm works the best?
   - [ ] How to determine horizontal and vertical penalties?
 
-- [ ] Implement deltas and double deltas
-- [ ] Implement LPC
-- [ ] Implement PLP
+- [ ] Function to actually warp one utterance to another given the output of DTW. This requires a
+      function to supersample audio.
+
+- [ ] Implement deltas and double deltas.
+- [ ] Implement LPC.
+- [ ] Implement PLP.
