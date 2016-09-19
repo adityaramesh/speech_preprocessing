@@ -12,7 +12,7 @@ TIDIGITS data set.
 
 - Implement and test DTW
   - [x] Implement DTW.
-  - [ ] Test on toy grid example (make a separate notebook called `warp.py`).
+  - [x] Test on toy grid example (make a separate notebook called `warp.py`).
   - [ ] Test with MFCC, using both two-norm and infinity-norm.
   - [ ] Function to actually warp one utterance to another given the output of DTW.
 
@@ -21,6 +21,6 @@ TIDIGITS data set.
   - [ ] Which is the best norm to use?
   - [ ] How to determine horizontal and vertical penalties?
 
-- Implement deltas and double deltas
-- Implement LPC
-- Implement PLP
+- [ ] Implement deltas and double deltas
+- [ ] Implement LPC
+- [ ] Implement PLP

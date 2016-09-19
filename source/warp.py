@@ -32,21 +32,21 @@ def shortest_path(width, height, dist, h_penalty=0, v_penalty=0):
 		assert d >= 0
 		
 		if i != 0:
-			if dist_map[i - 1][j] == np.nan:
+			if math.isnan(dist_map[i - 1][j]):
 				stack.append((i - 1, j))
 				continue
 			else:
 				c_left = dist_map[i - 1][j] + d + h_penalty
 
 		if j != 0:
-			if dist_map[i][j - 1] == np.nan:
+			if math.isnan(dist_map[i][j - 1]):
 				stack.append((i, j - 1))
 				continue
 			else:
 				c_down = dist_map[i][j - 1] + d + v_penalty
 
 		if i != 0 and j != 0:
-			if dist_map[i - 1][j - 1] == np.nan:
+			if math.isnan(dist_map[i - 1][j - 1]):
 				stack.append((i - 1, j - 1))
 				continue
 			else:
