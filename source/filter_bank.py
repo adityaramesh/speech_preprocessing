@@ -12,7 +12,7 @@ def _freq_to_mel(f):
 	return 700 * (10 ** (f / 2595) - 1)
 
 def _mel_to_freq(m):
-	return 2595 * math.log10(1 + f / 700)
+	return 2595 * math.log10(1 + m / 700)
 
 def _generate_sample_times(sample_count, sample_freq):
 	"""
@@ -58,12 +58,11 @@ def _make_rabiner_band_pass_filter(bin_freqs, sample_freq, sample_count, beta=4.
 	base_start = base_center - filter_width / 2
 	base_stop = base_center + filter_width / 2
 
-	t = generate_sample_times(sample_count, sample_freq)
+	t = _generate_sample_times(sample_count, sample_freq)
 	f_1, f_2 = (f / math.pi * np.sinc(f * t) for f in [base_start, base_stop])
-	assert f_2 > f_1
 
 	w = np.kaiser(sample_count, beta)
-	F = np.abs(np.fft.fft(w * (f2 - f1) * np.exp(math.pi * (f_start - base_start) * 1j * t)))
+	F = np.abs(np.fft.fft(w * (f_2 - f_1) * np.exp(math.pi * (f_start - base_start) * 1j * t)))
 
 	# We zero out the response for any frequency above the Nyquist frequency.
 	F[math.ceil((sample_count - 1) / 2):] = 0
@@ -88,7 +87,7 @@ def _make_triangular_band_pass_filter(bin_freqs, sample_freq, sample_count):
 	f_l, f_c, f_r = (step * round(f / step) for f in [f_start, f_center, f_stop])
 
 	for f in [f_l, f_c, f_r]:
-		assert f in freqs
+		assert f in sample_freqs
 
 	a_1, b_1 =  1 / (f_c - f_l), -f_l / (f_c - f_l)
 	a_2, b_2 = -1 / (f_r - f_c),  f_r / (f_r - f_c)
@@ -101,7 +100,7 @@ def _make_triangular_band_pass_filter(bin_freqs, sample_freq, sample_count):
 		else:
 			return a_2 * f + b_2
 
-	return np.array([tent(f) for f in freqs])
+	return np.array([tent(f) for f in sample_freqs])
 
 """
 Filter sequence definitions.
@@ -129,8 +128,8 @@ class LinearFilterSequence:
 		
 	@classmethod
 	def from_range(class_, f_start, f_stop, count, width=None):
-		assert f_start > f_stop
-		return class_(f_start, (f_start - f_stop) / (count + 1), count, width=width)
+		assert f_start < f_stop
+		return class_(f_start, (f_stop - f_start) / (count + 1), count, width=width)
 	
 	def __iter__(self):
 		self.k = 0
@@ -141,7 +140,7 @@ class LinearFilterSequence:
 			raise StopIteration()
 
 		assert self.k < self.count
-		center = self.f_start + offset + self.k * self.stride
+		center = self.f_start + self.width / 2 + self.k * self.stride
 		
 		self.k += 1
 		return center - self.width / 2, center, center + self.width / 2
@@ -168,7 +167,7 @@ class RabinerFilterSequence:
 			
 	@classmethod
 	def from_range(class_, f_start, f_stop, count, width=None, delta_l=0, delta_r=0):
-		assert f_start > f_stop
+		assert f_start < f_stop
 		return class_(f_start + delta_l, (f_stop - f_start - (delta_l + delta_r)) / (count + 1),
 			count, width=width)
 	
@@ -205,6 +204,15 @@ class MelFilterSequence:
 Filter type definitions.
 """
 
+def _fix_stop_freq(f_stop, nyquist_freq):
+	if f_stop > nyquist_freq and f_stop - nyquist_freq < 1e-10:
+		print("Warning: f_stop ({}) > nyquist_freq ({}). The difference is small ({}), "
+			"so f_stop will be clamped to nyquist_freq.".format(f_stop, nyquist_freq,
+			f_stop - nyquist_freq))
+		return nyquist_freq
+
+	return f_stop
+
 class RabinerBandPass:
 	def __init__(self, size, sample_freq, beta=4.864):
 		self.size = size
@@ -212,17 +220,19 @@ class RabinerBandPass:
 		self.beta = beta
 	
 	def __call__(self, f_start, f_center, f_stop):
+		f_stop = _fix_stop_freq(f_stop, self.sample_freq / 2)
 		return _make_rabiner_band_pass_filter((f_start, f_center, f_stop),
 			self.sample_freq, self.size, self.beta)
 		
 class TriangularBandPass:
-	def __init__(self, size, nyquist_freq):
+	def __init__(self, size, sample_freq):
 		self.size = size
 		self.sample_freq = sample_freq
 	
 	def __call__(self, f_start, f_center, f_stop):
-		return _make_triangular_band_pass_filter((f_start, f_center, f_stop),
-			self.sample_freq, self.size)
+		f_stop = _fix_stop_freq(f_stop, self.sample_freq / 2)
+		return _make_triangular_band_pass_filter((f_start, f_center, f_stop), self.sample_freq,
+			self.size)
 
 """
 API functions.
@@ -325,7 +335,7 @@ def apply_filter_bank(filters_resps, signal, stride, window_type=WindowType.rect
 		S = np.fft.fft(chunk_buffer) ** 2
 
 		for j, resp in enumerate(filter_resps):
-			features[i][j] = np.log(np.sum((S * resp))
+			features[i][j] = np.log(np.sum((S * resp)))
 
 		features[i] = fftpack.dct(x=features[i], overwrite_x=True)
 
