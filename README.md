@@ -17,11 +17,10 @@ TIDIGITS data set.
   - [ ] Function to actually warp one utterance to another given the output of DTW.
 
 - Find best filter bank for cepstral coefficient representation
-  - [ ] Implement deltas and double deltas.
   - [ ] Find best number of filters to use.
   - [ ] Which is the best norm to use?
   - [ ] How to determine horizontal and vertical penalties?
 
-- LPC
-
-- PLP
+- Implement deltas and double deltas
+- Implement LPC
+- Implement PLP
