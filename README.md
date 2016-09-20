@@ -10,12 +10,6 @@ TIDIGITS data set.
 
 # Agenda
 
-- Write a visualization module, and switch to a continuous color scheme for the spectogram. Use a
-  red-based color scheme. The legend should have a color bar with labeled ticks.
-- Write a function to create a plot to visualize the Mel spectogram. Transition from blue (for
-  negative values) to red (for positive values). The legend should have a color bar with labeled
-  ticks.
-
 - Implement and test DTW
   - [x] Implement DTW.
   - [x] Test on toy example (make a separate notebook called `warp.py`).
@@ -34,5 +28,7 @@ TIDIGITS data set.
       function to supersample audio.
 
 - [ ] Implement deltas and double deltas.
-- [ ] Implement LPC.
-- [ ] Implement PLP.
+
+- Later:
+  - [ ] Implement LPC.
+  - [ ] Implement PLP.
