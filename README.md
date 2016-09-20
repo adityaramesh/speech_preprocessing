@@ -13,9 +13,7 @@ TIDIGITS data set.
 - Implement and test DTW
   - [x] Implement DTW.
   - [x] Test on toy example (make a separate notebook called `warp.py`).
-  - [ ] Test with MFCC on TI46, using both two-norm and infinity-norm. Compare performance to that
-	of librosa's MFCC implementation. **Ensure that we divide the distance by the length of the
-        pattern that we are attempting to recognize.**
+  - [ ] Test with MFCC on TIDIGITS.
     - [x] Script to create small version of the dataset.
     - [ ] Script to compute MFCCs and save as another hdf5 file.
     - [ ] Script to perform the recognition using DTW.
@@ -47,5 +45,5 @@ TIDIGITS data set.
 - [ ] Implement deltas and double deltas.
 
 - Later:
-  - [ ] Implement LPC.
-  - [ ] Implement PLP.
+  - [ ] Implement and evaluate LPC.
+  - [ ] Implement and evaluate PLP.
