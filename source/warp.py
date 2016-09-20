@@ -9,12 +9,21 @@ import numpy as np
 Implementation of the symmetric variant of dynamic time warping, in which upward, downward, and
 diagonal moves are permitted.
 
+Notes:
+- The minimum distance found is divided by the length of the template. Otherwise, there will be a
+  bias for matching smaller templates.
+- ``h_penalty`` and ``v_penalty`` must be set emirically in order to obtain good performance.
+
 Parameters:
+- ``height``: The length of the template for which we seek the best match by warping the input.
+- ``weight``: The length of the input that we are trying to warp to match the template.
 - ``dist``: Should return a non-negative real number given a pair of non-negative integers.
 """
 def shortest_path(width, height, dist, h_penalty=0, v_penalty=0):
 	assert width >= 1
 	assert height >= 1
+	assert h_penalty >= 0
+	assert v_penalty >= 0
 
 	dist_map = np.full(shape=(width, height), dtype='float', fill_value=float('nan'))
 	index_map = np.full(shape=(width, height, 2), dtype=np.int64, fill_value=-1)
@@ -72,4 +81,4 @@ def shortest_path(width, height, dist, h_penalty=0, v_penalty=0):
 		assert cur_i != -1 and cur_j != -1
 		best_path.insert(0, (cur_i, cur_j))
 	
-	return best_path, min_dist
+	return best_path, min_dist / height
