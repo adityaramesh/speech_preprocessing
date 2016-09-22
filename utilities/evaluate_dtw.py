@@ -35,7 +35,7 @@ read_features(test_group, test_utt)
 print(len(train_utt), len(test_utt))
 
 def compute_distances(inputs, templates, dists):
-	for i, input_ in enumerate(inputs[:1]):
+	for i, input_ in enumerate(inputs):
 		print("Working on utterance {} / {}.".format(i + 1, len(inputs)))
 		dists.append([])
 
