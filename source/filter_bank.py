@@ -322,7 +322,7 @@ Computes the cepstral coefficients from the given signal by using the following 
   - For each chunk, compute the DCT-II of the coefficients obtained from the previous step. This
     gives us the cepstral coefficients.
 """
-def apply_filter_bank(filter_resps, signal, stride, window_type=WindowType.rectangular):
+def apply_filter_bank(filter_resps, signal, stride, window_type=WindowType.hamming):
 	channels = len(filter_resps)
 	assert channels > 0
 	assert stride > 0
