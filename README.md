@@ -8,6 +8,33 @@ An evaluation of the following preprocessing methods for speech using dynamic ti
 The preprocessing schemes are evaluated based on recognition accuracy of spoken digits, using the
 TIDIGITS data set.
 
+# Notes on Microsoft's Switchboard Paper
+
+- Ensemble of convolutional and recurrent architectures.
+  - Three types of convolutional architectures: VGG, ResNet, and LACE.
+  - RNNs used: BLSTMs with at most six layers, without frame skipping.
+  - Acoustic features are log-filterbank values (e.g. MFCCs) computed every 10 ms using a 25 ms
+    window.
+- Use of i-vectors:
+  - For RNNs, the i-vector is appended to the features for each frame.
+  - For CNNs, the i-vector is projected and added to the bias of each CNN layer, before the
+    activation function.
+- Use of lattice-free MMI training.
+- Decoding is initially done using WFSTs with an n-gram language model.
+- The $N$ best hypotheses are then rescored using RNN language models. There are many variants:
+  - Use of both forward-predicting and backward-predicting RNNs; the log probabilities from both are
+    added. (Why not predict the RNN to fill in missing words using beam search instead? This
+    generalizes both schemes.)
+  - Interpolation of RNN LMs with n-gram LMs (the forward- and backward-predicting RNNs are
+    interpolated separately).
+  - Pre-training of RNNs on out-of-domain data, and fine-tuning on in-domain data. (Use of
+    multi-column networks like in the Deep Mind paper may be helpful here.)
+  - Best results with RNN that has second, non-recurrent layer.
+  - Training uses NCE.
+  - For rescoring purposes, an empirically determined penalty is applied to out-of-domain words.
+  - Fisher and Switchboard transcripts were used as in-domain training data.
+- Use of 1-bit SGD to efficiently parallelize training.
+
 # Agenda
 
 - Implement and test DTW
@@ -15,7 +42,7 @@ TIDIGITS data set.
   - [x] Test on toy example (make a separate notebook called `warp.py`).
   - [ ] Test with MFCC on TIDIGITS.
     - [x] Script to create small version of the dataset.
-    - [ ] Script to compute MFCCs and save as another hdf5 file.
+    - [x] Script to compute MFCCs and save as another hdf5 file.
     - [ ] Script to perform the recognition using DTW.
     - [ ] First experiment.
 
@@ -44,6 +71,6 @@ TIDIGITS data set.
 
 - [ ] Implement deltas and double deltas.
 
-- Later:
+- Later (if necessary):
   - [ ] Implement and evaluate LPC.
   - [ ] Implement and evaluate PLP.
