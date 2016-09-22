@@ -37,29 +37,20 @@ TIDIGITS data set.
 
 # Agenda
 
-- Implement and test DTW
-  - [x] Implement DTW.
-  - [x] Test on toy example (make a separate notebook called `warp.py`).
-  - [ ] Test with MFCC on TIDIGITS.
-    - [x] Script to create small version of the dataset.
-    - [x] Script to compute MFCCs and save as another hdf5 file.
-    - [ ] Script to perform the recognition using DTW.
-    - [ ] First experiment.
-
 - Find best filter bank for cepstral coefficient representation
   - [ ] How to determine horizontal and vertical penalties?
     - Unclear how to do this, but they should be nonzero. They should certainly be greater than zero
       and less than the returned minimum distance values, so try a grid search between these two
       numbers.
+  - [ ] Does using the first DCT coefficient help?
+    - One experiment.
   - [ ] Which norm works the best?
     - One more experiment.
 
-  - [ ] Does using the first DCT coefficient help?
-    - One experiment.
   - [ ] Is it better to use only the DCT-II coefficients up to the 13th?
     - One experiment.
   - [ ] Is it better to use a small or large number of filters?
-    - Try 26 and 40; one more experiment.
+    - Try 26 and 40; one more experiment. Recompute horizontal and vertical penalties.
   - [ ] Which filter bank is best?
     - Three more experiments, after designing the filter banks using either 26 or 40 filters,
       whichever was found to be more effective.
