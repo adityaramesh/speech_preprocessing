@@ -50,7 +50,6 @@ test_digit_paths  = get_utterance_paths(test_source_path)
 
 def print_digit_counts(paths, dataset):
 	total = 0
-
 	print("Total number of {} instances for:".format(dataset))
 
 	for i, digit_paths in enumerate(paths):
