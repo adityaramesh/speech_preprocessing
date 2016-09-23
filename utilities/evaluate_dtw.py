@@ -11,6 +11,9 @@ import sys
 import h5py
 import numpy as np
 
+from queue import Queue
+from concurrent.futures import ThreadPoolExecutor
+
 sys.path.append(os.getcwd())
 from source.warp import *
 
@@ -34,7 +37,39 @@ read_features(train_group, train_utt)
 read_features(test_group, test_utt)
 print(len(train_utt), len(test_utt))
 
+def compute_distance(input_index, input_count, input_, templates, queue):
+	input_digit, input_features = input_
+	assert 0 <= input_digit <= 9
+
+	print("Working on utterance {} / {}.".format(input_index, input_count))
+	dists = []
+
+	for j, template in enumerate(templates):
+		# XXX
+		print("* Comparison {} / {}.".format(j + 1, len(templates)))
+		template_digit, template_features = template
+		assert 0 <= template_digit <= 9
+
+		dist_func = lambda u, v: np.linalg.norm(input_features[u] -
+			template_features[v])
+		_, dist = shortest_path(width=input_features.shape[0],
+			height=template_features.shape[0], dist=dist_func)
+
+		assert dist >= 0
+		dists[-1].append((j, dist))
+
+	return queue.put((input_index, dists))
+
 def compute_distances(inputs, templates, dists):
+	queue = Queue()
+	results = []
+
+	with ThreadPoolExecutor(max_workers=2) as executor:
+		for i, input_ in enumerate(inputs):
+			results.append(executor.submit(compute_distance, i, len(inputs), input_,
+				templates, queue))
+
+	"""
 	for i, input_ in enumerate(inputs):
 		print("Working on utterance {} / {}.".format(i + 1, len(inputs)))
 		dists.append([])
@@ -54,6 +89,7 @@ def compute_distances(inputs, templates, dists):
 
 			assert dist >= 0
 			dists[-1].append((j, dist))
+	"""
 
 compute_distances(train_utt, test_utt, train_dists)
 
