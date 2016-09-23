@@ -1,9 +1,7 @@
 """
 Evaluates the performance of DTW using a file containing the precomputed features. Metrics reported:
 * Top-1 accuracy.
-* Top-5 accuracy.
-
-TODO: parallelize.
+* Top-3 accuracy.
 """
 
 import os
@@ -12,6 +10,7 @@ import h5py
 import numpy as np
 
 from queue import Queue
+from multiprocessing import cpu_count
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append(os.getcwd())
@@ -45,8 +44,6 @@ def compute_distance(input_index, input_count, input_, templates, queue):
 	dists = []
 
 	for j, template in enumerate(templates):
-		# XXX
-		print("* Comparison {} / {}.".format(j + 1, len(templates)))
 		template_digit, template_features = template
 		assert 0 <= template_digit <= 9
 
@@ -56,40 +53,24 @@ def compute_distance(input_index, input_count, input_, templates, queue):
 			height=template_features.shape[0], dist=dist_func)
 
 		assert dist >= 0
-		dists[-1].append((j, dist))
+		dists.append((j, dist))
 
 	return queue.put((input_index, dists))
 
 def compute_distances(inputs, templates, dists):
 	queue = Queue()
+
+	with ThreadPoolExecutor(max_workers=cpu_count()) as executor:
+		for i, input_ in enumerate(inputs):
+                        executor.submit(compute_distance, i, len(inputs), input_, templates, queue)
+
 	results = []
 
-	with ThreadPoolExecutor(max_workers=2) as executor:
-		for i, input_ in enumerate(inputs):
-			results.append(executor.submit(compute_distance, i, len(inputs), input_,
-				templates, queue))
+	for _ in range(len(inputs)):
+		results.append(queue.get())
 
-	"""
-	for i, input_ in enumerate(inputs):
-		print("Working on utterance {} / {}.".format(i + 1, len(inputs)))
-		dists.append([])
-
-		input_digit, input_features = input_
-		assert 0 <= input_digit <= 9
-
-		for j, template in enumerate(templates):
-			print("* Comparison {} / {}.".format(j + 1, len(templates)))
-			template_digit, template_features = template
-			assert 0 <= template_digit <= 9
-
-			dist_func = lambda i, j: np.linalg.norm(input_features[i] -
-				template_features[j])
-			_, dist = shortest_path(width=input_features.shape[0],
-				height=template_features.shape[0], dist=dist_func)
-
-			assert dist >= 0
-			dists[-1].append((j, dist))
-	"""
+	results.sort(key=lambda x: x[0])
+	return [x[0] for x in results]
 
 compute_distances(train_utt, test_utt, train_dists)
 
@@ -107,7 +88,7 @@ def digit_in_top_k(digit, k, dists):
 def print_scores(group, group_dists):
 	assert len(group) == len(group_dists)
 	top_1_count = 0
-	top_5_count = 0
+	top_3_count = 0
 
 	for i in range(len(group_dists)):
 		digit, _ = group[i]
@@ -116,11 +97,11 @@ def print_scores(group, group_dists):
 
 		if digit_in_top_k(digit, 1, dists):
 			top_1_count += 1
-			top_5_count += 1
-		elif digit_in_top_k(digit, 5, dists):
-			top_5_count += 1
+			top_3_count += 1
+		elif digit_in_top_k(digit, 3, dists):
+			top_3_count += 1
 
 	print("Top-1 accuracy: {}.".format(top_1_count / len(group_dists)))
-	print("Top-5 accuracy: {}.".format(top_5_count / len(group_dists)))
+	print("Top-3 accuracy: {}.".format(top_3_count / len(group_dists)))
 
 print_scores(train_utt, train_dists)

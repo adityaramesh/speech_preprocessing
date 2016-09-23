@@ -20,13 +20,13 @@ def get_utterance_paths(source_path):
 	paths = [[] for _ in range(10)]
 
 	for speaker in os.listdir(source_path):
-		if speaker == '.DS_Store':
+		if speaker[0] == '.':
 			continue
 
 		speaker_path = os.path.join(source_path, speaker)
 
 		for utterance in os.listdir(speaker_path):
-			if utterance == '.DS_Store':
+			if utterance[0] == '.':
 				continue
 
 			m = digit_pat.match(utterance)

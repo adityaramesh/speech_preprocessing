@@ -13,8 +13,8 @@ TIDIGITS data set.
 - Ensemble of convolutional and recurrent architectures.
   - Three types of convolutional architectures: VGG, ResNet, and LACE.
   - RNNs used: BLSTMs with at most six layers, without frame skipping.
-  - Acoustic features are log-filterbank values (e.g. MFCCs) computed every 10 ms using a 25 ms
-    window.
+  - Acoustic features are "log-filterbank values" (MFCCs without DCT-II?) computed every 10 ms using
+    a 25 ms window.
 - Use of i-vectors:
   - For RNNs, the i-vector is appended to the features for each frame.
   - For CNNs, the i-vector is projected and added to the bias of each CNN layer, before the
